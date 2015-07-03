@@ -5,6 +5,15 @@
 - name: create ext volume for logs
   file: state=directory path={{ ext_postgresql_logs_volume }}
 
+- name: create ext volume for configs
+  file: state=directory path={{ ext_postgresql_conf_volume }}
+
+- name: put postgresql.conf
+  template: src=postgresql.conf dest={{ ext_postgresql_conf_volume }}/postgresql.conf
+
+- name: put pg_hba.conf
+  template: src=pg_hba.conf dest={{ ext_postgresql_conf_volume }}/pg_hba.conf
+
 - name: check if a postgresql container is started
   command: bash -c "docker ps | grep postgresql"
   ignore_errors: True
@@ -15,5 +24,7 @@
             -p={{ postgresql_port }}:5432
             -v {{ ext_postgresql_volume }}:/var/lib/postgresql/9.3
             -v {{ ext_postgresql_logs_volume }}:/var/log/postgresql
+            -v {{ ext_postgresql_conf_volume }}/postgresql.conf:/etc/postgresql/9.3/main/postgresql.conf
+            -v {{ ext_postgresql_conf_volume }}/pg_hba.conf:/etc/postgresql/9.3/main/pg_hba.conf
             --name=postgresql gitinsky/postgresql:0.1.2
   when: result|failed
